@@ -3,6 +3,7 @@ ini_set('memory_limit','512M');
 //ini_set('max_execution_time','1000');
 header('Content-Type: application/json');
 error_reporting(E_ALL);
+include('cache.class.php');
 /*
 *   	Busqueda de feature/s mas cercana al punto recibido dentro de los servicios de IDERA.
 *	Args: Coordenada x,y en EPSG:4326 y tipo de objeto a buscar segun catalogo de IDERA.
@@ -43,7 +44,8 @@ function array_sort($array, $on, $order=SORT_ASC)
     }
 
     return $new_array;
-}
+} // End array_sort
+
 function max_distance($result){
  if (! empty($result)){
  $max=0;
@@ -60,15 +62,20 @@ if (count($result)>9){
  }
 	return ['id'=>$id_max,'valor'=>$max];
 
-}
+} // End max_distance
 
 
 if (isset($_REQUEST['x']) and isset($_REQUEST['y']) and isset($_REQUEST['tipo'])):
 $tipo=$_REQUEST['tipo'];
 $x_origen=$_REQUEST['x'];
 $y_origen=$_REQUEST['y'];
+$cache= new Cache;
+if ($cache->fileExists($x_origen,$y_origen,$tipo)) {
+	echo $cache->getFile($x_origen,$y_origen,$tipo);}
+else{
+
 	//echo "ok, se precedera a la busqueda. WAIT A MOMENT!";
-switch ($tipo){
+  switch ($tipo){
 	case "escuela":
 		$base = file_get_contents('data/escuelas.json', FILE_USE_INCLUDE_PATH);
 		break;
@@ -78,7 +85,7 @@ switch ($tipo){
 	default:
 
 		die('nada, solo se de escuelas y universidades`');
-}
+  } 
 
 	$base_array=json_decode($base);
 	unset($base);
@@ -97,20 +104,22 @@ switch ($tipo){
 
 
 		if ($distancia<$mayor_hasta_ahora['valor']){
-//			echo $distancia.'    '.$mayor_hasta_ahora['valor'];
 			unset($resultado[$mayor_hasta_ahora['id']]);
 			$resultado[]=array("id"=>$id,"tipo"=>$tipo,"nombre"=>$nombre,"x"=>$x,"y"=>$y,"distancia"=>$distancia);
 		}
 		$mayor_hasta_ahora=max_distance($resultado);
 	}
-//var_dump($resultado);   
 	$resultado_ordenado=array_sort($resultado,"distancia");
 	unset($resultado);
-//	var_dump($resultado_ordenado);
+	$json_result=json_encode($resultado_ordenado);
+// Salvar en cache
+	$cache->putFile($x_origen,$y_origen,$tipo,$json_result);
+	echo $json_result;
 
-	echo json_encode($resultado_ordenado);
-else:
+}
+
+  else:
 	echo "Faltan parametros, que se yo cuales, faltan";
-endif;
+  endif;
 
 ?>

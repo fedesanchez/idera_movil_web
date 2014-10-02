@@ -1,4 +1,6 @@
 <?php
+ini_set('memory_limit','512M');
+//ini_set('max_execution_time','1000');
 header('Content-Type: application/json');
 error_reporting(E_ALL);
 /*
@@ -42,6 +44,24 @@ function array_sort($array, $on, $order=SORT_ASC)
 
     return $new_array;
 }
+function max_distance($result){
+ if (! empty($result)){
+ $max=0;
+if (count($result)>9){
+//echo count($result).' ';
+  foreach($result as $id => $data){
+		if ($max<$data['distancia']) {$max=$data['distancia']; $id_max=$id;}
+	}
+}
+	else {$max= 1000000000; $id_max=null;}
+  
+ }else{
+	$max= 1000000000;$id_max=null;
+ }
+	return ['id'=>$id_max,'valor'=>$max];
+
+}
+
 
 if (isset($_REQUEST['x']) and isset($_REQUEST['y']) and isset($_REQUEST['tipo'])):
 $tipo=$_REQUEST['tipo'];
@@ -57,22 +77,35 @@ switch ($tipo){
 		break;
 	default:
 
-		die('nada');
+		die('nada, solo se de escuelas y universidades`');
 }
 
-
-
 	$base_array=json_decode($base);
+	unset($base);
 	$features_array=$base_array->features;
+	$resultado=array();
+	$mayor_hasta_ahora['valor']=10000000000000;
+	$mayor_hasta_ahora['id']=null;
 	foreach ( $features_array as $id => $feature ){
 		$x=$feature->geometry->coordinates[0];
 		$y=$feature->geometry->coordinates[1];
 		$distancia=round( hypot(abs($x-$x_origen), abs($y-$y_origen)),5);
+
+		if ($tipo=='universidad'){
 		$nombre=$feature->properties->universida;
-		$resultado[]=array("id"=>$id,"tipo"=>$tipo,"nombre"=>$nombre,"x"=>$x,"y"=>$y,"dist"=>$distancia);
+		}else{$nombre=$feature->properties->nom_est;}
+
+
+		if ($distancia<$mayor_hasta_ahora['valor']){
+//			echo $distancia.'    '.$mayor_hasta_ahora['valor'];
+			unset($resultado[$mayor_hasta_ahora['id']]);
+			$resultado[]=array("id"=>$id,"tipo"=>$tipo,"nombre"=>$nombre,"x"=>$x,"y"=>$y,"distancia"=>$distancia);
+		}
+		$mayor_hasta_ahora=max_distance($resultado);
 	}
 //var_dump($resultado);   
-	$resultado_ordenado=array_sort($resultado,"dist");
+	$resultado_ordenado=array_sort($resultado,"distancia");
+	unset($resultado);
 //	var_dump($resultado_ordenado);
 
 	echo json_encode($resultado_ordenado);

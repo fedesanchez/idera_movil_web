@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 error_reporting(E_ALL);
 /*
 *   	Busqueda de feature/s mas cercana al punto recibido dentro de los servicios de IDERA.

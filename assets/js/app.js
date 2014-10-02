@@ -115,9 +115,28 @@ function main() {
 
 
       /* Clear feature highlight when map is clicked */
-      map.on("click", function(e) {
-        console.log(e.latlng);
-      });
+	map.on("click", function(e) {
+        	//console.log(e.latlng);
+		var xy=e.latlng;
+        	 $.ajax({
+			url:"buscar.php",
+			data:{
+			     x:xy.lat,
+			     y:xy.lng,
+			     tipo:"escuela"
+			}
+		})
+       		 .done(function(e) {
+                	alert("done");
+        	})
+        	.fail(function() {
+                	alert( "error" );
+        	})
+        	.always(function() {
+                	alert( "complete" );
+        	});
+      	});
+
 
       var zoomControl = L.control.zoom({
         position: "bottomright"

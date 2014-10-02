@@ -36,7 +36,7 @@ function array_sort($array, $on, $order=SORT_ASC)
         }
 
         foreach ($sortable_array as $k => $v) {
-            $new_array[$k] = $array[$k];
+            $new_array[] = $array[$k];
         }
     }
 
@@ -57,16 +57,11 @@ $y_origen=$_REQUEST['y'];
 		$distancia=round( hypot(abs($x-$x_origen), abs($y-$y_origen)),5);
 		$nombre=$feature->properties->universida;
 		$resultado[]=array("id"=>$id,"tipo"=>$tipo,"nombre"=>$nombre,"x"=>$x,"y"=>$y,"dist"=>$distancia);
-//	echo $tipo.': '.$id.' => '.$nombre.'('.$x.','.$y.')'.$distancia.'<br />';
-//	var_dump($feature);
 	}
+//var_dump($resultado);   
 	$resultado_ordenado=array_sort($resultado,"dist");
 //	var_dump($resultado_ordenado);
-/*foreach($resultado_ordenado as $array){
-	$array_json=json_encode($array,true);
-	$array_jsons[]=$array_json;
-}
-*/
+
 	echo json_encode($resultado_ordenado);
 else:
 	echo "Faltan parametros, que se yo cuales, faltan";

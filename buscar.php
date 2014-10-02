@@ -48,7 +48,20 @@ $tipo=$_REQUEST['tipo'];
 $x_origen=$_REQUEST['x'];
 $y_origen=$_REQUEST['y'];
 	//echo "ok, se precedera a la busqueda. WAIT A MOMENT!";
-	$base = file_get_contents('data/universidades.json', FILE_USE_INCLUDE_PATH);
+switch ($tipo){
+	case "escuela":
+		$base = file_get_contents('data/escuelas.json', FILE_USE_INCLUDE_PATH);
+		break;
+	case "universidad":
+		$base = file_get_contents('data/universidades.json', FILE_USE_INCLUDE_PATH);
+		break;
+	default:
+
+		die('nada');
+}
+
+
+
 	$base_array=json_decode($base);
 	$features_array=$base_array->features;
 	foreach ( $features_array as $id => $feature ){

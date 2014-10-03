@@ -33,4 +33,4 @@ function putFile($x,$y,$tipo,$json){
 	}
 }
 ?>	
-}
+

@@ -32,5 +32,4 @@ function putFile($x,$y,$tipo,$json){
 	file_put_contents(DIR_PUT_CONTENTS.'/'.$nombre_fichero, $json);
 	}
 }
-?>	
-
+?>

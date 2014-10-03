@@ -118,14 +118,24 @@ function main() {
 	map.on("click", function(e) {
         	//console.log(e.latlng);
 		var xy=e.latlng;
-        	 $.ajax({
-			url:"buscar.php",
-			data:{
-			     x:xy.lat,
-			     y:xy.lng,
+        	 $.getJSON(
+			"buscar.php",
+			{
+			     x:xy.lng,
+			     y:xy.lat,
 			     tipo:"escuela"
+			},
+			function(data){
+				var items = [];
+				$.each( data, function( key, val ) {
+					items.push( "<li id='" + key + "'>" + val.nombre + "</li>" );
+				});
+				$( "<ul/>", {
+						"class": "my-new-list",
+						html: items.join( "" )
+				}).appendTo("#sidebar"); // Crear div para mostrar o acumular resultados 
 			}
-		})
+		)
        		 .done(function(e) {
                 	alert("done");
         	})

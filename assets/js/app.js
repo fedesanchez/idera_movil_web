@@ -1,4 +1,4 @@
-var map, featureList, boroughSearch = [], theaterSearch = [], museumSearch = [];
+var map;
 
 $(document).on("click", ".feature-row", function(e) {
   sidebarClick(parseInt($(this).attr('id')));
@@ -111,9 +111,7 @@ function main() {
         attributionControl: false
       });
 
-      /* Layer control listeners that allow for a single markerClusters layer */
-
-
+      
       /* Clear feature highlight when map is clicked */
 	map.on("click", function(e) {
         	//console.log(e.latlng);
@@ -127,13 +125,31 @@ function main() {
 			}
 		})
        		 .done(function(e) {
-                	alert("done");
+                	console.log("DONE: mostrando resultados en el mapa");
+                        var resultados=L.geoJson().addTo(map);
+                        for(var i in e){
+                            var geojsonFeature = {
+                                "type": "Feature",
+                                "properties": {
+                                    "nombre": e[i].nombre                              
+                                },
+                                "geometry": {
+                                    "type": "Point",
+                                    "coordinates": [e[i].x,e[i].y]
+                                }
+                            };  
+                           resultados.addData(geojsonFeature);    
+                        };
+                        
+                        var bounds=resultados.getBounds();
+                        map.fitBounds(bounds);
+                        
         	})
         	.fail(function() {
-                	alert( "error" );
+                	alert( "ERROR: error en la peticion, revisar log" );
         	})
         	.always(function() {
-                	alert( "complete" );
+                	//console.log("funcion que se ejecuta siempre al terminar ajax");
         	});
       	});
 

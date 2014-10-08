@@ -1,71 +1,53 @@
-var map;
+/*
+ * Aplicacion para visualizar datos de idera en telefonos moviles 
+ * Se intenta respetar una estructura que permita compilar apk de Android con phonegap
+ */
 
-$(document).on("click", ".feature-row", function(e) {
-  sidebarClick(parseInt($(this).attr('id')));
-});
+var app = {
+    // Application Constructor
+    initialize: function() {        
+        this.ocultarLoading();
+        this.inicializarTemplateBootstrap();
+    },
+    ocultarLoading: function(){
+        $(".loading").fadeOut("slow");
+    },
+    inicializarTemplateBootstrap: function(){
+        $("#barra").fadeIn("slow");
+        $("#container").fadeIn("slow");
+             
+      // Highlight search box text on click /
+      $("#searchbox").click(function () {
+        $(this).select();
+      });
+      
+      $("#nav-btn").click(function() {
+        $(".navbar-collapse").collapse("toggle");
+        return false;
+      });
 
-$("#about-btn").click(function() {
-  $("#aboutModal").modal("show");
-  return false;
-});
+      $("#sidebar-toggle-btn").click(function() {
+        $("#sidebar").toggle();
+        //map.invalidateSize();
+        return false;
+      });
 
-$("#full-extent-btn").click(function() {
-  map.fitBounds(boroughs.getBounds());
-  return false;
-});
+      $("#sidebar-hide-btn").click(function() {
+        $('#sidebar').hide();
+        //map.invalidateSize();
+      });
 
-
-$("#login-btn").click(function() {
-  $("#loginModal").modal("show");
-  return false;
-});
-
-$("#list-btn").click(function() {
-  $('#sidebar').toggle();
-  map.invalidateSize();
-  return false;
-});
-
-$("#nav-btn").click(function() {
-  $(".navbar-collapse").collapse("toggle");
-  return false;
-});
-
-$("#sidebar-toggle-btn").click(function() {
-  $("#sidebar").toggle();
-  map.invalidateSize();
-  return false;
-});
-
-$("#sidebar-hide-btn").click(function() {
-  $('#sidebar').hide();
-  map.invalidateSize();
-});
-
-
-
-function sidebarClick(id) {
-  map.addLayer(theaterLayer).addLayer(museumLayer);
-  var layer = markerClusters.getLayer(id);
-  markerClusters.zoomToShowLayer(layer, function() {
-    map.setView([layer.getLatLng().lat, layer.getLatLng().lng], 17);
-    layer.fire("click");
-  });
-  /* Hide sidebar and go to the map on small screens */
-  if (document.body.clientWidth <= 767) {
-    $("#sidebar").hide();
-    map.invalidateSize();
-  }
-}
-
-
-function main() {
-
-      /* Servicios*/
-
+      this.inicializarMapa();
+    },
+    mapa:null,
+    locateControl:null,
+    posicion:null,
+    inicializarMapa: function(){
+        
+      // Servicios
       var WMSmapaeducativo="http://www.mapaeducativo.edu.ar/geoserver/ogc/wms";
 
-      /* Basemap Layers */
+      // Basemap Layers /
       var mapquestOSM = L.tileLayer("http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
         maxZoom: 19,
         subdomains: ["otile1", "otile2", "otile3", "otile4"],
@@ -85,7 +67,7 @@ function main() {
         attribution: 'Labels courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">. Map data (c) <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> contributors, CC-BY-SA. Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
       })]);
 
-      /* Overlay Layers */
+      // Overlay Layers /
 
       var escuelas = L.tileLayer.wms(WMSmapaeducativo, {
           layers: 'escuelas',
@@ -103,16 +85,136 @@ function main() {
           attribution: ""
       });
 
-      map = L.map("map", {
-        zoom: 8,
-        center: [-27, -54],
-        layers: [mapquestOSM, escuelas,universidades],
-        zoomControl: false,
-        attributionControl: false
-      });
+        map=  L.map("map", {
+           zoom: 8,
+           center: [-27, -54],
+           layers: [mapquestOSM, escuelas,universidades],
+           zoomControl: false,
+           attributionControl: false
+        });
+        
+        L.control.zoom({
+         position: "bottomright"
+        }).addTo(map);
+        
+        this.locateControl = L.control.locate({
+        position: "bottomright",
+        drawCircle: true,
+        follow: true,
+        setView: true,
+        keepCurrentZoomLevel: true,
+        markerStyle: {
+          weight: 1,
+          opacity: 0.8,
+          fillOpacity: 0.8
+        },
+        circleStyle: {
+          weight: 1,
+          clickable: false
+        },
+        icon: "icon-direction",
+        metric: false,
+        strings: {
+          title: "My location",
+          popup: "You are within {distance} {unit} from this point",
+          outsideMapBoundsMsg: "You seem located outside the boundaries of the map"
+        },
+        locateOptions: {
+          maxZoom: 18,
+          watch: true,
+          enableHighAccuracy: true,
+          maximumAge: 10000,
+          timeout: 10000
+        }
+      }).addTo(map);
 
+      var baseLayers = {
+        "Street Map": mapquestOSM,
+        "Aerial Imagery": mapquestOAM,
+        "Imagery with Streets": mapquestHYB
+      };
+
+     var groupedOverlays = {
+      "Educación": {
+      "<img src='assets/img/escuelas.png' >&nbsp;Escuelas": escuelas,
+      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades
+      }
+      //"Salud": {
+      //"Hospitales": hospitales
+      //}
+      };
+     
+     // Larger screens get expanded layer control and visible sidebar /
+      if (document.body.clientWidth <= 767) {
+         var isCollapsed = true;
+        } else {
+          var isCollapsed = false;
+      }
+        
+      L.control.groupedLayers(baseLayers, groupedOverlays, {
+        collapsed: isCollapsed
+      }).addTo(map);
+
+      this.mapa=map;
+    }
+    
+    
+};
+
+/*
+var map;
+var locateControl;
+var posicion;
+
+$(document).on("click", ".feature-row", function(e) {
+  sidebarClick(parseInt($(this).attr('id')));
+});
+
+
+$(".list-group-item").click(function(e) {
+  var valor=$(this).attr('id');
+  var opcion=$("#opcion-consulta input[type='radio']:checked").val();
+  //alert(valor +"-"+opcion);
+  if(opcion=="posicion"){
+      // obtener posicion y ejecutar busqueda
+      alert("buscar "+valor+" en "+locateControl._circleMarker.getLatLng().lat+" "+locateControl._circleMarker.getLatLng().lng);
+  }else{
+      //agregar evento de click al mapa y sugerir al usuario a hacer click
       
-      /* Clear feature highlight when map is clicked */
+  }
+});
+
+
+
+
+
+function sidebarClick(id) {
+  map.addLayer(theaterLayer).addLayer(museumLayer);
+  var layer = markerClusters.getLayer(id);
+  markerClusters.zoomToShowLayer(layer, function() {
+    map.setView([layer.getLatLng().lat, layer.getLatLng().lng], 17);
+    layer.fire("click");
+  });
+  // Hide sidebar and go to the map on small screens 
+  if (document.body.clientWidth <= 767) {
+    $("#sidebar").hide();
+    map.invalidateSize();
+  }
+}
+
+
+function main() {
+ 
+    $("#opcion-consulta input[type='radio']").bootstrapSwitch();
+    
+    $("#opcion-consulta input[type='radio']").on('switchChange.bootstrapSwitch', function (e) {
+       posicion=$("#posicion").bootstrapSwitch('state'); 
+       if(posicion){
+           locateControl.locate();
+       }
+    });
+      
+      // Clear feature highlight when map is clicked /
 	map.on("click", function(e) {
         	//console.log(e.latlng);
 		var xy=e.latlng;
@@ -154,78 +256,16 @@ function main() {
       	});
 
 
-      var zoomControl = L.control.zoom({
-        position: "bottomright"
-      }).addTo(map);
+      
 
-      /* GPS enabled geolocation control set to follow the user's location */
-      var locateControl = L.control.locate({
-        position: "bottomright",
-        drawCircle: true,
-        follow: true,
-        setView: true,
-        keepCurrentZoomLevel: true,
-        markerStyle: {
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0.8
-        },
-        circleStyle: {
-          weight: 1,
-          clickable: false
-        },
-        icon: "icon-direction",
-        metric: false,
-        strings: {
-          title: "My location",
-          popup: "You are within {distance} {unit} from this point",
-          outsideMapBoundsMsg: "You seem located outside the boundaries of the map"
-        },
-        locateOptions: {
-          maxZoom: 18,
-          watch: true,
-          enableHighAccuracy: true,
-          maximumAge: 10000,
-          timeout: 10000
-        }
-      }).addTo(map);
-
-      /* Larger screens get expanded layer control and visible sidebar */
-      if (document.body.clientWidth <= 767) {
-        var isCollapsed = true;
-      } else {
-        var isCollapsed = false;
-      }
-
-      var baseLayers = {
-        "Street Map": mapquestOSM,
-        "Aerial Imagery": mapquestOAM,
-        "Imagery with Streets": mapquestHYB
-      };
-
-     var groupedOverlays = {
-      "Educación": {
-      "<img src='assets/img/escuelas.png' >&nbsp;Escuelas": escuelas,
-      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades
-      }
-      //"Salud": {
-      //"Hospitales": hospitales
-      //}
-      };
-      var layerControl = L.control.groupedLayers(baseLayers, groupedOverlays, {
-        collapsed: isCollapsed
-      }).addTo(map);
-
-      /* Highlight search box text on click */
-      $("#searchbox").click(function () {
-        $(this).select();
-      });
-
-      /* Typeahead search functionality */
+      // Typeahead search functionality 
       $(document).one("ajaxStop", function () {
         $("#loading").hide();        
       });
 
       $("#loading").hide();
 }
+
+ */
+
   

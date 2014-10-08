@@ -4,17 +4,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="description" content="">
     <meta name="author" content="">
     <title>IDERA</title>
 
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css">
-    <link rel="stylesheet" href="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.css">
-    <link rel="stylesheet" href="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
     <link rel="stylesheet" href="assets/css/app.css">
 
     <link rel="apple-touch-icon" sizes="76x76" href="assets/img/favicon-76.png">
@@ -25,7 +19,8 @@
   </head>
 
   <body onload="main()">
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" id="barra" style="display:none">
       <div class="navbar-header">
         <div class="navbar-icon-container">
           
@@ -36,65 +31,71 @@
       
     </div>
 
-    <div id="container">
+    <div id="container" style="display:none">
       <div id="sidebar">
-        <div class="sidebar-wrapper">
-          <div class="panel panel-default" id="features">
-            <div class="panel-heading">
-              <h3 class="panel-title">Buscar el mas cercano
-              <button type="button" class="btn btn-xs btn-default pull-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
-            </div>
+       <div class="sidebar-wrapper">
+        <div class="panel panel-default" id="features">
+            
             <div class="panel-body">
-              <p>
-                <div class="row">
-                  <div class="col-xs-8 col-md-8">
-                    <input type="text" class="form-control search" placeholder="Filter" />
-                  </div>
-                  <div class="col-xs-4 col-md-4">
-                    <button type="button" class="btn btn-primary pull-right sort" data-sort="feature-name" id="sort-btn"><i class="fa fa-sort"></i>&nbsp;&nbsp;Sort</button>
-                  </div>
+              
+                <div class="list-group">
+                    <a href="#" id="escuela" class="list-group-item">Escuelas</a>
+                    <a href="#" id="universidad" class="list-group-item">Universidades</a>
+                    <a href="#" id="hospital" class="list-group-item">Hospitales</a>
+                    <a href="#" id="comisaria" class="list-group-item">Comisarias</a>
+                    <a href="#" id="todo" class="list-group-item">que mas?</a>
                 </div>
-              </p>
+                
+                <div id="opcion-consulta" class="form-group">                    
+                   <p>
+                    <label>Click en el mapa</label>                   
+                    <input  value="click-mapa" type="radio" name="opcion" checked>
+                   </p>
+                   <p>
+                     <label>Posicion actual</label>                       
+                     <input id="posicion" value="posicion" type="radio" name="opcion">                  
+                   </p>                    
+                </div>
+            
             </div>
-            <div class="sidebar-table">
-              <table class="table table-hover" id="feature-list">
-                <thead class="hidden">
-                  <tr>
-                    <th>Icon</th>
-                  <tr>
-                  <tr>
-                    <th>Name</th>
-                  <tr>
-                  <tr>
-                    <th>Chevron</th>
-                  <tr>
-                </thead>
-                <tbody class="list"></tbody>
-              </table>
-            </div>
-          </div>
+            
         </div>
+       </div>
       </div>
       <div id="map"></div>
     </div>
-    <div id="loading">
-      <div class="loading-indicator">
-        <div class="progress progress-striped active">
-          <div class="progress-bar progress-bar-info progress-bar-full"></div>
+    
+       
+      
+        <div class="loading">
+            <div id="deviceready" class="blink">
+                <p class="event listening">Cargando mapa</p>              
+            </div>
         </div>
-      </div>
-    </div>
+        
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+        <link rel="stylesheet" href="assets/css/leaflet.css">
+        <link rel="stylesheet" href="assets/css/L.Control.Locate.css">
+        <link rel="stylesheet" href="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
+        <link href="assets/css/bootstrap-switch.min.css" rel="stylesheet">
+      
+        <script src="assets/js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="assets/js/app.js"></script>
+        <script src="assets/js/bootstrap.min.js"></script>    
+        <script src="assets/js/leaflet.js"></script>
+        <script src="assets/js/L.Control.Locate.js"></script>
+        <script src="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.js"></script>
+        <script src="assets/js/app.js"></script>
+        <script src="assets/js/bootstrap-switch.min.js"></script>
 
-    
-    
-    
-    
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    
-    <script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-    <script src="//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.js"></script>
-    <script src="assets/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.js"></script>
-    <script src="assets/js/app.js"></script>
+        <script type="text/javascript">
+            var map;
+            function main(){
+                app.initialize();    
+            }
+            
+        </script>
   </body>
+    
 </html>

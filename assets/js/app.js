@@ -6,6 +6,7 @@
 var app = {
     // Application Constructor
     initialize: function() {        
+        console.log("inicializando");
         this.ocultarLoading();
         this.inicializarTemplateBootstrap();
     },
@@ -34,8 +35,31 @@ var app = {
 
       $("#sidebar-hide-btn").click(function() {
         $('#sidebar').hide();
-        //map.invalidateSize();
       });
+      
+      $(".list-group-item").click(function(e) {
+        console.log("click a la lista");  
+        var valor=$(this).attr('id');
+        var opcion=$("#opcion-consulta input[type='radio']:checked").val();
+        if(opcion==="posicion"){
+            console.log("posicion");
+            app.buscar(valor,app.locateControl._circleMarker.getLatLng());
+        }else{
+            map.on("click", function(e) {
+		app.buscar(valor,e.latlng);        	 
+            });
+        }
+      });
+      
+    $("#opcion-consulta input[type='radio']").bootstrapSwitch();
+    
+    $("#opcion-consulta input[type='radio']").on('switchChange.bootstrapSwitch', function (e) {
+       posicion=$("#posicion").bootstrapSwitch('state'); 
+       if(posicion){
+           app.locateControl.locate();
+       }
+    });
+    
 
       this.inicializarMapa();
     },
@@ -156,6 +180,46 @@ var app = {
       }).addTo(map);
 
       this.mapa=map;
+    },
+    /* Buscar: busqueda de los 10 eventos mas cercanos a un punto 
+     * - categoria, objeto que se busca...escuela, comisaria hospital etc
+     * - latlng, coordenadas de la busqueda
+     * */
+    buscar: function(categoria,latlng){
+        console.log("buscando "+categoria);
+        $.ajax({
+			url:"buscar.php",
+			data:{
+			     x:latlng.lat,
+			     y:latlng.lng,
+			     tipo:categoria
+			}
+		})
+       		 .done(function(e) {
+                	console.log("DONE: mostrando resultados en el mapa");
+                        var resultados=L.geoJson().addTo(map);
+                        for(var i in e){
+                            var geojsonFeature = {
+                                "type": "Feature",
+                                "properties": {
+                                    "nombre": e[i].nombre                              
+                                },
+                                "geometry": {
+                                    "type": "Point",
+                                    "coordinates": [e[i].x,e[i].y]
+                                }
+                            };  
+                           resultados.addData(geojsonFeature);    
+                        };
+                        var bounds=resultados.getBounds();
+                        map.fitBounds(bounds);
+        	})
+        	.fail(function() {
+                	alert( "ERROR: error en la peticion, revisar log" );
+        	})
+        	.always(function() {
+                	//console.log("funcion que se ejecuta siempre al terminar ajax");
+        	});
     }
     
     
@@ -171,18 +235,6 @@ $(document).on("click", ".feature-row", function(e) {
 });
 
 
-$(".list-group-item").click(function(e) {
-  var valor=$(this).attr('id');
-  var opcion=$("#opcion-consulta input[type='radio']:checked").val();
-  //alert(valor +"-"+opcion);
-  if(opcion=="posicion"){
-      // obtener posicion y ejecutar busqueda
-      alert("buscar "+valor+" en "+locateControl._circleMarker.getLatLng().lat+" "+locateControl._circleMarker.getLatLng().lng);
-  }else{
-      //agregar evento de click al mapa y sugerir al usuario a hacer click
-      
-  }
-});
 
 
 
@@ -205,14 +257,6 @@ function sidebarClick(id) {
 
 function main() {
  
-    $("#opcion-consulta input[type='radio']").bootstrapSwitch();
-    
-    $("#opcion-consulta input[type='radio']").on('switchChange.bootstrapSwitch', function (e) {
-       posicion=$("#posicion").bootstrapSwitch('state'); 
-       if(posicion){
-           locateControl.locate();
-       }
-    });
       
       // Clear feature highlight when map is clicked /
 	map.on("click", function(e) {

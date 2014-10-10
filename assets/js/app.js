@@ -215,10 +215,7 @@ var app = {
                         map.fitBounds(bounds);
         	})
         	.fail(function() {
-                	alert( "ERROR: error en la peticion, revisar log" );
-        	})
-        	.always(function() {
-                	//console.log("funcion que se ejecuta siempre al terminar ajax");
+                	alert( "ERROR: error en la busqueda, revisar log" );
         	});
     }
     

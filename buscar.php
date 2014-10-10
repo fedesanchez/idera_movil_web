@@ -83,8 +83,8 @@ function Distance($lat1, $lon1, $lat2, $lon2, $unit) {
 
 if (isset($_REQUEST['x']) and isset($_REQUEST['y']) and isset($_REQUEST['tipo'])):
 $tipo=$_REQUEST['tipo'];
-$x_origen=$_REQUEST['x'];
-$y_origen=$_REQUEST['y'];
+$x_origen=$_REQUEST['y'];
+$y_origen=$_REQUEST['x'];
 $cache= new Cache;
 if ($cache->fileExists($x_origen,$y_origen,$tipo)) {
 	echo $cache->getFile($x_origen,$y_origen,$tipo);}

@@ -197,7 +197,16 @@ var app = {
 		})
        		 .done(function(e) {
                 	console.log("DONE: mostrando resultados en el mapa");
-                        var resultados=L.geoJson().addTo(map);
+                        var icono = {
+                            radius: 8,
+                            fillColor: "#ff7800",
+                            color: "#000",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        };
+                        //
+                        var resultados=[];
                         for(var i in e){
                             var geojsonFeature = {
                                 "type": "Feature",
@@ -209,9 +218,21 @@ var app = {
                                     "coordinates": [e[i].x,e[i].y]
                                 }
                             };  
-                           resultados.addData(geojsonFeature);    
+                           resultados.push(geojsonFeature);    
+                           /*L.geoJson(geojsonFeature, {
+                                pointToLayer: function (feature, latlng) {
+                                    return L.circleMarker(latlng, icono);
+                                }
+                            }).addTo(map);
+                         */
                         };
-                        var bounds=resultados.getBounds();
+                        var layer=L.geoJson(resultados,{
+                                pointToLayer: function (feature, latlng) {
+                                    return L.circleMarker(latlng, icono);
+                                }
+                        }).addTo(map);
+                        
+                        var bounds=layer.getBounds();
                         map.fitBounds(bounds);
         	})
         	.fail(function() {

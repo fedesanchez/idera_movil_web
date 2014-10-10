@@ -49,6 +49,7 @@ function array_sort($array, $on, $order=SORT_ASC)
 function max_distance($result){
  if (! empty($result)){
  $max=0;
+ $id_max=null;
 if (count($result)>9){
 //echo count($result).' ';
   foreach($result as $id => $data){
@@ -63,7 +64,22 @@ if (count($result)>9){
 	return ['id'=>$id_max,'valor'=>$max];
 
 } // End max_distance
+function Distance($lat1, $lon1, $lat2, $lon2, $unit) { 
+  
+  $radius = 6378.137; // earth mean radius defined by WGS84
+  $dlon = $lon1 - $lon2; 
+  $distance = acos( sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($dlon))) * $radius; 
 
+  if ($unit == "K") {
+  		return ($distance); 
+  } else if ($unit == "M") {
+    	return ($distance * 0.621371192);
+  } else if ($unit == "N") {
+    	return ($distance * 0.539956803);
+  } else {
+    	return 0;
+  }
+}// FIN DISTANCE
 
 if (isset($_REQUEST['x']) and isset($_REQUEST['y']) and isset($_REQUEST['tipo'])):
 $tipo=$_REQUEST['tipo'];
@@ -96,14 +112,13 @@ else{
 	foreach ( $features_array as $id => $feature ){
 		$x=$feature->geometry->coordinates[0];
 		$y=$feature->geometry->coordinates[1];
-		$distancia=round( hypot(abs($x-$x_origen), abs($y-$y_origen)),5);
+		$distancia=Distance($x,$y,$x_origen,$y_origen,'K');
 
 		if ($tipo=='universidad'){
 		$nombre=$feature->properties->universida;
 		}else{$nombre=$feature->properties->nom_est;}
-
-
 		if ($distancia<$mayor_hasta_ahora['valor']){
+		//	echo $distancia.' < '.$mayor_hasta_ahora['valor'];
 			unset($resultado[$mayor_hasta_ahora['id']]);
 			$resultado[]=array("id"=>$id,"tipo"=>$tipo,"nombre"=>$nombre,"x"=>$x,"y"=>$y,"distancia"=>$distancia);
 		}

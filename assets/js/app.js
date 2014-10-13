@@ -43,20 +43,27 @@ var app = {
             console.log("posicion");
             app.buscar(valor,app.locateControl._circleMarker.getLatLng());
         }else{
+            $(".alert").html("Haga click en el mapa para encontrar los mas cercanos");
             map.on("click", function(e) {
 		app.buscar(valor,e.latlng);        	 
             });
         }
       });
       
-      
-    $("#opcion-consulta input[type='radio']").bootstrapSwitch();
+      // cuesta mucho usarlo en los celus
+    //$("#opcion-consulta input[type='radio']").bootstrapSwitch();
     
-    $("#opcion-consulta input[type='radio']").on('switchChange.bootstrapSwitch', function (e) {
-       posicion=$("#posicion").bootstrapSwitch('state'); 
-       if(posicion){
+    //$("#opcion-consulta input[type='radio']").on('switchChange.bootstrapSwitch', function (e) {
+       $("#opcion-consulta input[type='radio']").change(function(){
+        var opcion=$(this).val();
+           //posicion=$("#posicion").bootstrapSwitch('state'); 
+       if(opcion=="posicion"){
            app.locateControl.locate();
        }
+    });
+    
+    $("#resetearBusqueda").click(function(e){
+        app.resetearBusqueda();
     });
     
 
@@ -126,8 +133,8 @@ var app = {
       });
 
         map=  L.map("map", {
-           zoom: 8,
-           center: [-27, -54],
+           zoom: 7,
+           center: [-36.82687474287728, 	-59.94140624999999],
            layers: [mapquestOSM, escuelas,universidades,comisarias,salud],
            zoomControl: false,
            attributionControl: false
@@ -177,13 +184,14 @@ var app = {
      var groupedOverlays = {
       "Educación": {
       "<img src='assets/img/escuelas.png' >&nbsp;Escuelas": escuelas,
-      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades,
-      "<img src='assets/img/comisarias.png' >&nbsp;Comisarias": comisarias,
+      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades            
+      },
+      "Salud": {
       "<img src='assets/img/salud.png' >&nbsp;Salud Pública": salud
+      },
+      "Seguridad":{
+          "<img src='assets/img/comisarias.png' >&nbsp;Comisarias": comisarias
       }
-      //"Salud": {
-      //"Hospitales": hospitales
-      //}
       };
      
      // Larger screens get expanded layer control and visible sidebar /
@@ -204,7 +212,6 @@ var app = {
      * - latlng, coordenadas de la busqueda
      * */
     buscar: function(categoria,latlng){
-        console.log("buscando "+categoria);
         $.ajax({
                 url:"buscar.php",
                 data:{
@@ -234,16 +241,17 @@ var app = {
                 };   
         return g;                    
     },
-    mostrarResultados: function(r){
-        $("#categorias").fadeOut("slow");
-        
-        var items = [];
-        $.each( r, function( key, val ) {
-                items.push( "<a href='#' class='list-group-item' id='" + key + "'>" + val.nombre + "</a>" );
-        });
+    mostrarResultados: function(r){      
+        $(".alert").fadeOut();
         $("#resultados").fadeOut();
-        $("#resultados").html(items.join("")); 
-        $("#resultados").fadeIn("slow");
+        $("#resultados").html("");
+        $("#opcion-consulta").fadeOut();
+        
+        $("#categorias").fadeOut("slow");        
+        $.each( r, function( key, val ) {
+                $("#resultados").append( "<a href='#' class='list-group-item' id='" + key + "'>" + val.nombre + "</a>" );
+        });
+                
         $("#resultados .list-group-item").click(function(e){
             var feature=app.formatearaGeojson(r[$(this).attr('id')]);
             var icono = {
@@ -263,7 +271,18 @@ var app = {
             var bounds=layer.getBounds();
             map.fitBounds(bounds);
         });
+        $("#resultados").fadeIn();
+        $("#resetearBusqueda").fadeIn();
     
+    },
+    resetearBusqueda:function(){
+        $("#resultados").fadeOut();
+        $("#resultados").html("");
+        
+        $("#categorias").fadeIn();
+        $("#opcion-consulta").fadeIn();
+        $("#resetearBusqueda").fadeOut();
+        
     }
     
     

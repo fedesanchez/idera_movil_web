@@ -5,8 +5,7 @@
 
 var app = {
     // Application Constructor
-    initialize: function() {        
-        console.log("inicializando");
+    inicializar: function() {        
         this.ocultarLoading();
         this.inicializarTemplateBootstrap();
     },
@@ -37,8 +36,7 @@ var app = {
         $('#sidebar').hide();
       });
       
-      $(".list-group-item").click(function(e) {
-        console.log("click a la lista");  
+      $("#categorias .list-group-item").click(function(e) {
         var valor=$(this).attr('id');
         var opcion=$("#opcion-consulta input[type='radio']:checked").val();
         if(opcion==="posicion"){
@@ -50,6 +48,7 @@ var app = {
             });
         }
       });
+      
       
     $("#opcion-consulta input[type='radio']").bootstrapSwitch();
     
@@ -70,6 +69,7 @@ var app = {
         
       // Servicios
       var WMSmapaeducativo="http://www.mapaeducativo.edu.ar/geoserver/ogc/wms";
+      var WMSgobierno ="http://sig.gobierno.gba.gov.ar:8080/geoserver/wms";
 
       // Basemap Layers /
       var mapquestOSM = L.tileLayer("http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
@@ -108,11 +108,27 @@ var app = {
           version: '1.1.0',
           attribution: ""
       });
+      
+      var comisarias=L.tileLayer.wms(WMSgobierno, {
+          layers: 'comisarias',
+          format: 'image/png8',
+          transparent: true,
+          version: '1.1.0',
+          attribution: ""
+      });
+      
+       var salud=L.tileLayer.wms(WMSgobierno, {
+          layers: 'salud2012_publicos',
+          format: 'image/png8',
+          transparent: true,
+          version: '1.1.0',
+          attribution: ""
+      });
 
         map=  L.map("map", {
            zoom: 8,
            center: [-27, -54],
-           layers: [mapquestOSM, escuelas,universidades],
+           layers: [mapquestOSM, escuelas,universidades,comisarias,salud],
            zoomControl: false,
            attributionControl: false
         });
@@ -161,7 +177,9 @@ var app = {
      var groupedOverlays = {
       "Educación": {
       "<img src='assets/img/escuelas.png' >&nbsp;Escuelas": escuelas,
-      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades
+      "<img src='assets/img/universidades.png' >&nbsp;Universidades": universidades,
+      "<img src='assets/img/comisarias.png' >&nbsp;Comisarias": comisarias,
+      "<img src='assets/img/salud.png' >&nbsp;Salud Pública": salud
       }
       //"Salud": {
       //"Hospitales": hospitales
@@ -188,146 +206,68 @@ var app = {
     buscar: function(categoria,latlng){
         console.log("buscando "+categoria);
         $.ajax({
-			url:"buscar.php",
-			data:{
-			     x:latlng.lat,
-			     y:latlng.lng,
-			     tipo:categoria
-			}
+                url:"buscar.php",
+                data:{
+                     x:latlng.lat,
+                     y:latlng.lng,
+                     tipo:categoria
+                }
 		})
-       		 .done(function(e) {
-                	console.log("DONE: mostrando resultados en el mapa");
-                        var icono = {
-                            radius: 8,
-                            fillColor: "#ff7800",
-                            color: "#000",
-                            weight: 1,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        };
-                        //
-                        var resultados=[];
-                        for(var i in e){
-                            var geojsonFeature = {
-                                "type": "Feature",
-                                "properties": {
-                                    "nombre": e[i].nombre                              
-                                },
-                                "geometry": {
-                                    "type": "Point",
-                                    "coordinates": [e[i].x,e[i].y]
-                                }
-                            };  
-                           resultados.push(geojsonFeature);    
-                           /*L.geoJson(geojsonFeature, {
-                                pointToLayer: function (feature, latlng) {
-                                    return L.circleMarker(latlng, icono);
-                                }
-                            }).addTo(map);
-                         */
-                        };
-                        var layer=L.geoJson(resultados,{
-                                pointToLayer: function (feature, latlng) {
-                                    return L.circleMarker(latlng, icono);
-                                }
-                        }).addTo(map);
-                        
-                        var bounds=layer.getBounds();
-                        map.fitBounds(bounds);
+       		 .done(function(e) {                	
+                        app.mostrarResultados(e);
+                            
         	})
-        	.fail(function() {
+        	 .fail(function() {
                 	alert( "ERROR: error en la busqueda, revisar log" );
         	});
+    },
+    formatearaGeojson:function(f){
+        var g = {
+                 "type":"Feature",
+                 "properties":{
+                               "nombre": f.nombre                              
+                              },
+                 "geometry": {
+                              "type": "Point",
+                              "coordinates": [f.x,f.y]
+                             }
+                };   
+        return g;                    
+    },
+    mostrarResultados: function(r){
+        $("#categorias").fadeOut("slow");
+        
+        var items = [];
+        $.each( r, function( key, val ) {
+                items.push( "<a href='#' class='list-group-item' id='" + key + "'>" + val.nombre + "</a>" );
+        });
+        $("#resultados").fadeOut();
+        $("#resultados").html(items.join("")); 
+        $("#resultados").fadeIn("slow");
+        $("#resultados .list-group-item").click(function(e){
+            var feature=app.formatearaGeojson(r[$(this).attr('id')]);
+            var icono = {
+                radius: 8,
+                fillColor: "#ff7800",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+                };
+            var layer=L.geoJson(feature,{
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, icono);
+                }
+            }).addTo(map);
+
+            var bounds=layer.getBounds();
+            map.fitBounds(bounds);
+        });
+    
     }
     
     
 };
 
-/*
-var map;
-var locateControl;
-var posicion;
-
-$(document).on("click", ".feature-row", function(e) {
-  sidebarClick(parseInt($(this).attr('id')));
-});
-
-
-
-
-
-
-
-function sidebarClick(id) {
-  map.addLayer(theaterLayer).addLayer(museumLayer);
-  var layer = markerClusters.getLayer(id);
-  markerClusters.zoomToShowLayer(layer, function() {
-    map.setView([layer.getLatLng().lat, layer.getLatLng().lng], 17);
-    layer.fire("click");
-  });
-  // Hide sidebar and go to the map on small screens 
-  if (document.body.clientWidth <= 767) {
-    $("#sidebar").hide();
-    map.invalidateSize();
-  }
-}
-
-
-function main() {
- 
-      
-      // Clear feature highlight when map is clicked /
-	map.on("click", function(e) {
-        	//console.log(e.latlng);
-		var xy=e.latlng;
-        	 $.ajax({
-			url:"buscar.php",
-			data:{
-			     x:xy.lat,
-			     y:xy.lng,
-			     tipo:"escuela"
-			}
-		})
-       		 .done(function(e) {
-                	console.log("DONE: mostrando resultados en el mapa");
-                        var resultados=L.geoJson().addTo(map);
-                        for(var i in e){
-                            var geojsonFeature = {
-                                "type": "Feature",
-                                "properties": {
-                                    "nombre": e[i].nombre                              
-                                },
-                                "geometry": {
-                                    "type": "Point",
-                                    "coordinates": [e[i].x,e[i].y]
-                                }
-                            };  
-                           resultados.addData(geojsonFeature);    
-                        };
-                        
-                        var bounds=resultados.getBounds();
-                        map.fitBounds(bounds);
-                        
-        	})
-        	.fail(function() {
-                	alert( "ERROR: error en la peticion, revisar log" );
-        	})
-        	.always(function() {
-                	//console.log("funcion que se ejecuta siempre al terminar ajax");
-        	});
-      	});
-
-
-      
-
-      // Typeahead search functionality 
-      $(document).one("ajaxStop", function () {
-        $("#loading").hide();        
-      });
-
-      $("#loading").hide();
-}
-
- */
 
   

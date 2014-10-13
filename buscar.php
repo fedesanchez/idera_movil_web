@@ -119,10 +119,17 @@ else{
 		$x=$feature->geometry->coordinates[0];
 		$y=$feature->geometry->coordinates[1];
 		$distancia=Distance($x,$y,$x_origen,$y_origen,'K');
-
-		if ($tipo=='universidad'){
-		$nombre=$feature->properties->universida;
-		}else{$nombre=$feature->properties->nom_est;}
+                
+                switch ($tipo){
+                case "universidad":
+                    $nombre=$feature->properties->universida;
+                    break;
+                case "escuela":
+                    $nombre=$feature->properties->nom_est;
+                    break;
+                default :
+                    $nombre=$feature->properties->nombre;
+                }
 		if ($distancia<$mayor_hasta_ahora['valor']){
 		//	echo $distancia.' < '.$mayor_hasta_ahora['valor'];
 			unset($resultado[$mayor_hasta_ahora['id']]);

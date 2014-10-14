@@ -5,6 +5,9 @@
 
 var app = {
     // Application Constructor
+    mapa:null,
+    locateControl:null,
+    posicion:null,
     inicializar: function() {        
         this.ocultarLoading();
         this.inicializarTemplateBootstrap();
@@ -13,8 +16,8 @@ var app = {
         $(".loading").fadeOut("slow");
     },
     inicializarTemplateBootstrap: function(){
-        $("#barra").fadeIn("slow");
-        $("#container").fadeIn("slow");
+      $("#barra").fadeIn("slow");
+      $("#container").fadeIn("slow");
              
       // Highlight search box text on click /
       $("#searchbox").click(function () {
@@ -40,13 +43,13 @@ var app = {
         var valor=$(this).attr('id');
         var opcion=$("#opcion-consulta input[type='radio']:checked").val();
         if(opcion==="posicion"){
-            console.log("posicion");
             app.buscar(valor,app.locateControl._circleMarker.getLatLng());
         }else{
-            $(".alert").html("Haga click en el mapa para encontrar los mas cercanos");
+            app.mostrarMensaje("Haga click en el mapa para encontrar los lugares mas cercanos");
             map.on("click", function(e) {
 		app.buscar(valor,e.latlng);        	 
             });
+            setTimeout(function(){$("#sidebar").hide();},2500);
         }
       });
       
@@ -57,7 +60,7 @@ var app = {
        $("#opcion-consulta input[type='radio']").change(function(){
         var opcion=$(this).val();
            //posicion=$("#posicion").bootstrapSwitch('state'); 
-       if(opcion=="posicion"){
+       if(opcion==="posicion"){
            app.locateControl.locate();
        }
     });
@@ -69,9 +72,6 @@ var app = {
 
       this.inicializarMapa();
     },
-    mapa:null,
-    locateControl:null,
-    posicion:null,
     inicializarMapa: function(){
         
       // Servicios
@@ -147,7 +147,7 @@ var app = {
         this.locateControl = L.control.locate({
         position: "bottomright",
         drawCircle: true,
-        follow: true,
+        follow: false, //para que no siga
         setView: true,
         keepCurrentZoomLevel: true,
         markerStyle: {
@@ -207,10 +207,6 @@ var app = {
 
       this.mapa=map;
     },
-    /* Buscar: busqueda de los 10 eventos mas cercanos a un punto 
-     * - categoria, objeto que se busca...escuela, comisaria hospital etc
-     * - latlng, coordenadas de la busqueda
-     * */
     buscar: function(categoria,latlng){
         $.ajax({
                 url:"buscar.php",
@@ -225,7 +221,7 @@ var app = {
                             
         	})
         	 .fail(function() {
-                	alert( "ERROR: error en la busqueda, revisar log" );
+                	this.mostrarMensaje( "ERROR: error en la busqueda, revisar log" );
         	});
     },
     formatearaGeojson:function(f){
@@ -273,6 +269,7 @@ var app = {
         });
         $("#resultados").fadeIn();
         $("#resetearBusqueda").fadeIn();
+        $("#sidebar").show();se
     
     },
     resetearBusqueda:function(){
@@ -283,6 +280,11 @@ var app = {
         $("#opcion-consulta").fadeIn();
         $("#resetearBusqueda").fadeOut();
         
+    },
+    mostrarMensaje:function(msg){
+        $(".alert").fadeOut("fast");
+        $(".alert").html(msg);
+        $(".alert").fadeIn("slow");            
     }
     
     

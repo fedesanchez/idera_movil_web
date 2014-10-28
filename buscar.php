@@ -100,13 +100,13 @@ else{
 		break;
         case "comisaria":
 		$base = file_get_contents('data/comisarias.json', FILE_USE_INCLUDE_PATH);
+		break;    
         case "salud":
 		$base = file_get_contents('data/salud_publicos.json', FILE_USE_INCLUDE_PATH);
 		break;    
-		break;    
 	default:
 
-		die('nada, solo se de escuelas y universidades`');
+		die('Nada, solo se tipo escuela, comisaria,salud y universidad.');
   } 
 
 	$base_array=json_decode($base);
